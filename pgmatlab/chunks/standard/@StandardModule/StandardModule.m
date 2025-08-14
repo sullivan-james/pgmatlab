@@ -5,10 +5,14 @@
 % should be extended for specific modules.
 
 classdef StandardModule < BaseChunk
+    properties
+        header = @StandardModuleHeader
+        footer = @StandardModuleFooter
+    end
     methods
         function obj = StandardModule(); end
-        function [data, selState] = read(self, fid, data, fileInfo, length, identifier) 
-            [data, selState] = read@BaseChunk(self, fid, data, fileInfo, length, identifier);
+        function [data, selState] = read(obj, fid, data, fileInfo, length, identifier) 
+            [data, selState] = read@BaseChunk(obj, fid, data, fileInfo, length, identifier);
          
             fileVersion = fileInfo.fileHeader.fileFormat;
             isBackground = identifier == -6;
@@ -30,7 +34,7 @@ classdef StandardModule < BaseChunk
                 flags.HASSEQUENCEMAP       = hex2dec('400');
                 flags.HASNOISE             = hex2dec('800');
                 flags.HASSIGNAL            = hex2dec('1000');
-                flags.HASSIGNALEXCESS       = hex2dec('2000');
+                flags.HASSIGNALEXCESS      = hex2dec('2000');
             end
 
             % CHECK: THIS IS LEGACY CODE AND NOT IMPLEMENTED IN PYPAMGUARD

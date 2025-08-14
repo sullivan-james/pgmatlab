@@ -33,7 +33,11 @@ function [dataSet, fileInfo] = loadPamguardBinaryFile(fileName, varargin)
 % information from the file which includes information such as the data
 % start and end times. 
 
+% required for all chunks to work together
 addpath('./pgmatlab/chunks/')
+addpath('./pgmatlab/chunks/standard/')
+addpath('./pgmatlab/chunks/modules/')
+addpath('./pgmatlab/chunks/annotations/')
 
 dataSet = [];
 fileInfo = [];
@@ -78,8 +82,9 @@ try
     fileInfo.readModuleHeader=@readStdModuleHeader;
     fileInfo.readModuleFooter=@readStdModuleFooter;
     
-    moduleClass = @BaseChunk;
-
+    moduleClass = -1;
+    moduleObj = -1;
+    
     % main loop
     while (1)
         
@@ -116,16 +121,15 @@ try
             % the package class that extends PamControlledUnit, and is a
             % string unique to that module.
             case -1
-                fseek(fid, -8, 'cof');
 
-                fileInfo.fileHeader = readFileHeader(fid);
-                % disp(fileInfo.fileHeader.moduleType);
-                disp(fileInfo.fileHeader.moduleType);
+                fileInfo.fileHeader = StandardFileHeader().read(fid, [], fileInfo, length, identifier);
+
                 switch fileInfo.fileHeader.moduleType
                     
                     % AIS Processing Module
                     case 'AIS Processing'
                         moduleClass = @AISProcessing;
+                        moduleObj = moduleClass();
                         fileInfo.objectType=0;
                         
                     % % Click Detector or Soundtrap Click Detector Module
@@ -253,39 +257,38 @@ try
             % when we read the file header.  If the file header is empty,
             % something has gone wrong so warn the user and exit
             case -2
-                fseek(fid, -8, 'cof');
 
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found file footer before file header.  Aborting load');
                     break;
                 end
-                fileInfo.fileFooter = readFileFooterInfo(fid, fileInfo.fileHeader.fileFormat);
+                
+                fileInfo.fileFooter = StandardFileFooter().read(fid, [], fileInfo, length, identifier);
                 
             % Case 3: Module Header.  The correct function handle should
             % have been set when we read the file header.  If the file
             % header is empty, something has gone wrong so warn the user
             % and exit
             case -3
-                fseek(fid, -8, 'cof');
 
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found module header before file header.  Aborting load');
                     break;
                 end
-                fileInfo.moduleHeader = fileInfo.readModuleHeader(fid);
+                
+                fileInfo.moduleHeader = moduleObj.header().read(fid, [], fileInfo, length, identifier);
                 
             % Case 4: Module Footer.  The correct function handle should
             % have been set when we read the file header.  If the file
             % header is empty, something has gone wrong so warn the user
             % and exit
             case -4
-                fseek(fid, -8, 'cof');
 
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found module footer before file header.  Aborting load');
                     break;
                 end
-                fileInfo.moduleFooter = fileInfo.readModuleFooter(fid);
+                fileInfo.moduleFooter = moduleObj.footer().read(fid, [], fileInfo, length, identifier);
                 
             % Case 5: Data.  The correct function handle should have been
             % set when we read in the file header.  If the file header is
@@ -298,9 +301,7 @@ try
                     disp('Error: found data before file header.  Aborting load');
                 end
 
-                dataPoint=struct();
-                obj = moduleClass()
-                dataPoint = obj.read(fid, dataPoint, fileInfo, length, identifier);
+                dataPoint = moduleObj.read(fid, [], fileInfo, length, identifier);
 
                 % [dataPoint, selState] = readPamData(fid, fileInfo, timeRange, uidRange, uidList);
                 % if (selState == 2) 
