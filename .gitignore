@@ -11,3 +11,6 @@ pgmatlab/Array/.MATLABDriveTag
 .MATLABDriveTag
 pgmatlab/.MATLABDriveTag
 pgmatlab/Array/.MATLABDriveTag
+
+# Development folders
+data/
