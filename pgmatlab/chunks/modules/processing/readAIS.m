@@ -1,6 +1,8 @@
-function [data, error] = readAISData(fid, fileInfo, data)
-% reads binary data stored by the AIS Processing module.
-%
+function [data, error] = readAIS(fid, fileInfo, data)
+% processing/readAIS.m
+% 
+% Read binary data produced by the AIS Processing module.
+% 
 % Inputs:
 %   fid = file identifier
 %   fileInfo = structure holding the file header, module header, a handle

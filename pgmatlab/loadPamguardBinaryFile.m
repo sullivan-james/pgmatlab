@@ -32,6 +32,9 @@ function [dataSet, fileInfo] = loadPamguardBinaryFile(fileName, varargin)
 % will return an optional fileInfo structure containing header and footer
 % information from the file which includes information such as the data
 % start and end times. 
+
+addpath('./pgmatlab/chunks/')
+
 dataSet = [];
 fileInfo = [];
 nBackground = 0;
@@ -75,6 +78,8 @@ try
     fileInfo.readModuleHeader=@readStdModuleHeader;
     fileInfo.readModuleFooter=@readStdModuleFooter;
     
+    moduleClass = @BaseChunk;
+
     % main loop
     while (1)
         
@@ -89,18 +94,21 @@ try
         
         % read in the length of the object and the type.  Move the file
         % pointer back to the beginning of the length variable, and switch
-        % on the type.  If we couldn't read nextLen or nextType, assume
+        % on the type.  If we couldn't read length or identifier, assume
         % that means we've hit the end of the file and break out of loop
-        [nextLen, nL] = fread(fid, 1, 'int32');
-        [nextType, nT] = fread(fid, 1, 'int32');
-%         if (nextType < 0)
-%         nextType
+        [length, nL] = fread(fid, 1, 'int32');
+        [identifier, nT] = fread(fid, 1, 'int32');
+        nextPos = ftell(fid) - 8 + length;
+%         if (identifier < 0)
+%         identifier
 %         end
         if (nL == 0 || nT == 0)
             break;
         end
-        fseek(fid, -8, 'cof');
-        switch nextType
+
+        
+
+        switch identifier
             
             % Case 1: File Header.  Read in the file header, and then set 
             % the function handles depending on what type of data the
@@ -108,118 +116,121 @@ try
             % the package class that extends PamControlledUnit, and is a
             % string unique to that module.
             case -1
+                fseek(fid, -8, 'cof');
+
                 fileInfo.fileHeader = readFileHeader(fid);
                 % disp(fileInfo.fileHeader.moduleType);
+                disp(fileInfo.fileHeader.moduleType);
                 switch fileInfo.fileHeader.moduleType
                     
                     % AIS Processing Module
                     case 'AIS Processing'
+                        moduleClass = @AISProcessing;
                         fileInfo.objectType=0;
-                        fileInfo.readModuleData=@readAISData;
                         
-                    % Click Detector or Soundtrap Click Detector Module
-                    case {'Click Detector', 'SoundTrap Click Detector'}
-                        switch fileInfo.fileHeader.streamName
-                            case 'Clicks'
-                                fileInfo.objectType=1000;
-                                fileInfo.readModuleData=@readClickData;
-                                fileInfo.readModuleFooter=@readClickFooter;
-                                fileInfo.readBackgroundData = @readClickBackground;
-                            case 'Trigger Background'
-                                fileInfo.objectType=0;
-                                fileInfo.readModuleData=@readClickTriggerData;
-                                fileInfo.readModuleHeader=@readClickTriggerHeader;   
-                        end
-                    % Clip Generator Module
-                    case 'Clip Generator'
-                        fileInfo.objectType=[1 2];
-                        fileInfo.readModuleData=@readClipData;
+                    % % Click Detector or Soundtrap Click Detector Module
+                    % case {'Click Detector', 'SoundTrap Click Detector'}
+                    %     switch fileInfo.fileHeader.streamName
+                    %         case 'Clicks'
+                    %             fileInfo.objectType=1000;
+                    %             fileInfo.readModuleData=@readClickData;
+                    %             fileInfo.readModuleFooter=@readClickFooter;
+                    %             fileInfo.readBackgroundData = @readClickBackground;
+                    %         case 'Trigger Background'
+                    %             fileInfo.objectType=0;
+                    %             fileInfo.readModuleData=@readClickTriggerData;
+                    %             fileInfo.readModuleHeader=@readClickTriggerHeader;   
+                    %     end
+                    % % Clip Generator Module
+                    % case 'Clip Generator'
+                    %     fileInfo.objectType=[1 2];
+                    %     fileInfo.readModuleData=@readClipData;
                     
-                    %Deep learning module
-                    case 'Deep Learning Classifier'
-                        disp(['Deep learning stream: ' fileInfo.fileHeader.streamName])
-                         switch fileInfo.fileHeader.streamName
-                            case {'DL_detection', 'DL detection'}
-                               fileInfo.objectType=1;
-                               fileInfo.readModuleData=@readDLDetData;
-                            case {'DL_Model_Data', 'DL Model Data'}
-                               fileInfo.objectType=0;
-                               fileInfo.readModuleData=@readDLModelData;
-                         end
+                    % %Deep learning module
+                    % case 'Deep Learning Classifier'
+                    %     disp(['Deep learning stream: ' fileInfo.fileHeader.streamName])
+                    %      switch fileInfo.fileHeader.streamName
+                    %         case {'DL_detection', 'DL detection'}
+                    %            fileInfo.objectType=1;
+                    %            fileInfo.readModuleData=@readDLDetData;
+                    %         case {'DL_Model_Data', 'DL Model Data'}
+                    %            fileInfo.objectType=0;
+                    %            fileInfo.readModuleData=@readDLModelData;
+                    %      end
 
                         
-                    % DbHt Module
-                    % NOT TESTED YET
-                    case 'DbHt'
-                        fileInfo.objectType=1;
-                        fileInfo.readModuleData=@readDbHtData;
+                    % % DbHt Module
+                    % % NOT TESTED YET
+                    % case 'DbHt'
+                    %     fileInfo.objectType=1;
+                    %     fileInfo.readModuleData=@readDbHtData;
                    
-                    % Difar Module
-                    case 'DIFAR Processing'
-                        fileInfo.objectType=0;
-                        fileInfo.readModuleData=@readDifarData;
+                    % % Difar Module
+                    % case 'DIFAR Processing'
+                    %     fileInfo.objectType=0;
+                    %     fileInfo.readModuleData=@readDifarData;
                         
-                    % LTSA Module
-                    case 'LTSA'
-                        fileInfo.objectType=1;
-                        fileInfo.readModuleHeader=@readLTSAHeader;
-                        fileInfo.readModuleData=@readLTSAData;
+                    % % LTSA Module
+                    % case 'LTSA'
+                    %     fileInfo.objectType=1;
+                    %     fileInfo.readModuleHeader=@readLTSAHeader;
+                    %     fileInfo.readModuleData=@readLTSAData;
                         
-                    % Noise Monitor Module and Noise Band Monitor Module
-                    % Note: The two modules have different types, but both
-                    % use noiseMonitor.NoiseBinaryDataSource class to save
-                    % data
-                    case {'Noise Monitor', 'Noise Band'}
-                        fileInfo.objectType=1;
-                        fileInfo.readModuleHeader=@readNoiseMonHeader;
-                        fileInfo.readModuleData=@readNoiseMonData;
+                    % % Noise Monitor Module and Noise Band Monitor Module
+                    % % Note: The two modules have different types, but both
+                    % % use noiseMonitor.NoiseBinaryDataSource class to save
+                    % % data
+                    % case {'Noise Monitor', 'Noise Band'}
+                    %     fileInfo.objectType=1;
+                    %     fileInfo.readModuleHeader=@readNoiseMonHeader;
+                    %     fileInfo.readModuleData=@readNoiseMonData;
                         
-                    % Filtered Noise Measurement Module (Noise One Band)
-                    case 'NoiseBand'
-                        fileInfo.objectType=1;
-                        fileInfo.readModuleData=@readNoiseBandData;
-                    case 'GPL Detector'
-                        switch fileInfo.fileHeader.streamName
-                            case 'GPL Detections'
-                                fileInfo.readModuleData = @readGPLDetections;
-                                fileInfo.readBackgroundData = @readSpectralBackground;
-                        end
-                    % Right Whale Edge Detector Module
-                    case 'RW Edge Detector'
-                        fileInfo.objectType=0;
-                        fileInfo.readModuleData=@readRWEDetectorData;
-                        disp('Right Whale Edge Detector binary file detected');
-                        disp('Note that the low, high and peak frequencies are actually');
-                        disp('saved as FFT slices.  In order to convert values to Hz, they');
-                        disp('must be multiplied by (sampleRate/fftLength)');
+                    % % Filtered Noise Measurement Module (Noise One Band)
+                    % case 'NoiseBand'
+                    %     fileInfo.objectType=1;
+                    %     fileInfo.readModuleData=@readNoiseBandData;
+                    % case 'GPL Detector'
+                    %     switch fileInfo.fileHeader.streamName
+                    %         case 'GPL Detections'
+                    %             fileInfo.readModuleData = @readGPLDetections;
+                    %             fileInfo.readBackgroundData = @readSpectralBackground;
+                    %     end
+                    % % Right Whale Edge Detector Module
+                    % case 'RW Edge Detector'
+                    %     fileInfo.objectType=0;
+                    %     fileInfo.readModuleData=@readRWEDetectorData;
+                    %     disp('Right Whale Edge Detector binary file detected');
+                    %     disp('Note that the low, high and peak frequencies are actually');
+                    %     disp('saved as FFT slices.  In order to convert values to Hz, they');
+                    %     disp('must be multiplied by (sampleRate/fftLength)');
                         
-                    % Whistle And Moans Module
-                    case 'WhistlesMoans'
-                        fileInfo.objectType=2000;
-                        fileInfo.readModuleHeader=@readWMDHeader;
-                        fileInfo.readModuleData=@readWMDData;
-                        fileInfo.readBackgroundData = @readSpectralBackground
+                    % % Whistle And Moans Module
+                    % case 'WhistlesMoans'
+                    %     fileInfo.objectType=2000;
+                    %     fileInfo.readModuleHeader=@readWMDHeader;
+                    %     fileInfo.readModuleData=@readWMDData;
+                    %     fileInfo.readBackgroundData = @readSpectralBackground
 
-                    case {'Energy Sum Detector','Spectrogram Correlation Detector','Matched Filter Detector'}
-                        switch fileInfo.fileHeader.streamName
-                            % Ishmael detector data
-                            case 'Ishmael Peak Data'
-                                fileInfo.readModuleData=@readIshmaelData;
+                    % case {'Energy Sum Detector','Spectrogram Correlation Detector','Matched Filter Detector'}
+                    %     switch fileInfo.fileHeader.streamName
+                    %         % Ishmael detector data
+                    %         case 'Ishmael Peak Data'
+                    %             fileInfo.readModuleData=@readIshmaelData;
 
-                                % Ismael detections
-                            case 'Ishmael Detections'
-                                fileInfo.readModuleData=@readIshmaelDetection;
-                        end
+                    %             % Ismael detections
+                    %         case 'Ishmael Detections'
+                    %             fileInfo.readModuleData=@readIshmaelDetection;
+                    %     end
                     
-                    % Ipi module
-                    case 'Ipi module'
-                        fileInfo.objectType=0;
-                        fileInfo.readModuleData=@readIpiData;
+                    % % Ipi module
+                    % case 'Ipi module'
+                    %     fileInfo.objectType=0;
+                    %     fileInfo.readModuleData=@readIpiData;
 
-                    case 'Gemini Threshold Detector'
-                        fileInfo.objectType = 0;
-                        fileInfo.readModuleData=@readTritechTrack;
-                        fileInfo.readBackgroundData = @readTritechBackground;
+                    % case 'Gemini Threshold Detector'
+                    %     fileInfo.objectType = 0;
+                    %     fileInfo.readModuleData=@readTritechTrack;
+                    %     fileInfo.readBackgroundData = @readTritechBackground;
                         
                     % Note: PamRawDataBlock has it's own Binary Store (RawDataBinarySource),
                     % but it is created by multiple different processes so doesn't have one
@@ -242,6 +253,8 @@ try
             % when we read the file header.  If the file header is empty,
             % something has gone wrong so warn the user and exit
             case -2
+                fseek(fid, -8, 'cof');
+
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found file footer before file header.  Aborting load');
                     break;
@@ -253,6 +266,8 @@ try
             % header is empty, something has gone wrong so warn the user
             % and exit
             case -3
+                fseek(fid, -8, 'cof');
+
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found module header before file header.  Aborting load');
                     break;
@@ -264,6 +279,8 @@ try
             % header is empty, something has gone wrong so warn the user
             % and exit
             case -4
+                fseek(fid, -8, 'cof');
+
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found module footer before file header.  Aborting load');
                     break;
@@ -275,53 +292,52 @@ try
             % empty, something has gone wrong so warn the user and exit
             case -5
                 % datagram data  Skip it for now. 
-                fseek(fid, nextLen, 'cof');                
+                fseek(fid, length, 'cof');                
             otherwise
                 if (isempty(fileInfo.fileHeader))
                     disp('Error: found data before file header.  Aborting load');
                 end
 
-                [dataPoint, selState] = readPamData(fid, fileInfo, timeRange, uidRange, uidList);
-                if (selState == 2) 
-                    break;
-                end
-                newP = ftell(fid);
-                pErr = newP - (prevPos+nextLen);
-                if pErr ~= 0
-                    fprintf('Error in file position: %d bytes\n', pErr);
-                    fseek(fid, -pErr, 'cof');
-                end
-                if nextType == -6
+                dataPoint=struct();
+                obj = moduleClass()
+                dataPoint = obj.read(fid, dataPoint, fileInfo, length, identifier);
+
+                % [dataPoint, selState] = readPamData(fid, fileInfo, timeRange, uidRange, uidList);
+                % if (selState == 2) 
+                %     break;
+                % end
+
+                if identifier == -6
                     nBackground = nBackground + 1;
                     backgroundData(nBackground) = dataPoint;
                     continue;
                 end
                 
                 % see if it's in the specified list of wanted UID's
-                if ~isempty(uidList)
-                    try 
-                        dataUID = dataPoint.UID;
-                        % if dataUID > uidList(end)
-                        %     break;
-                        % end
-                        selState = sum(dataUID == uidList);
-                    catch
+                % if ~isempty(uidList)
+                %     try 
+                %         dataUID = dataPoint.UID;
+                %         % if dataUID > uidList(end)
+                %         %     break;
+                %         % end
+                %         selState = sum(dataUID == uidList);
+                %     catch
                         
-                    end
-                end
+                %     end
+                % end
                 
-                if channelmap>0 && channelmap~=dataPoint.channelMap
-                    continue;
-                end
+                % if channelmap>0 && channelmap~=dataPoint.channelMap
+                %     continue;
+                % end
 
-                if selState > 0
-                    selState = filterfun(dataPoint);
-                end
-                if (selState == 0)
-                    continue;
-                elseif (selState == 2) 
-                    break;
-                end
+                % if selState > 0
+                %     selState = filterfun(dataPoint);
+                % end
+                % if (selState == 0)
+                %     continue;
+                % elseif (selState == 2) 
+                %     break;
+                % end
                                                 
                 % Preallocation. Acheived by adding new data points beyond
                 % the end of the existing array, then shortening the array
@@ -331,6 +347,11 @@ try
                 dataSet(nData) = dataPoint;
                 
 %                 dataSet = [dataSet dataPoint];
+
+                if ftell(fid) ~= nextPos
+                    fprintf('Error in file position: %d bytes\n', ftell(fid)-nextPos);
+                    fseek(fid, nextPos - ftell(fid), 'cof');
+                end
         end
         if (selState == 2)
             break;
