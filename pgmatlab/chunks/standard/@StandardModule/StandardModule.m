@@ -5,19 +5,34 @@
 % should be extended for specific modules.
 
 classdef StandardModule < BaseChunk
-    properties
-        header = @StandardModuleHeader
-        footer = @StandardModuleFooter
+    properties (Abstract)
+        objectType;
     end
-    methods
+    properties (Access = public)
+        header = @StandardModuleHeader;
+        footer = @StandardModuleFooter;
+        background = -1;
+    end
+
+    methods (Abstract)
+        % Method readImpl 'read implementation', to be concretely implemented
+        % with module-specific data to read
+        [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);
+    end
+
+    methods (Access = public, Sealed)
         function obj = StandardModule(); end
         function [data, selState] = read(obj, fid, data, fileInfo, length, identifier) 
-            [data, selState] = read@BaseChunk(obj, fid, data, fileInfo, length, identifier);
-         
+            
+            selState = 0;
+            data.identifier = identifier;
             fileVersion = fileInfo.fileHeader.fileFormat;
-            isBackground = identifier == -6;
 
-            % set constants to match the flag bitmap (initialized once only)
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%% READ STANDARD MODULE DATA %%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
             persistent flags;
             if isempty(flags)
                 flags = struct;
@@ -65,7 +80,7 @@ classdef StandardModule < BaseChunk
             else
                 data.flagBitmap = 0;
             end
-            
+
             % TODO: check version 2 logic here.
             if (fileVersion == 2 || (bitand(data.flagBitmap, flags.TIMENANOS) ~= 0) )
                 data.timeNanos = fread(fid, 1, 'int64');
@@ -73,7 +88,7 @@ classdef StandardModule < BaseChunk
             if (fileVersion == 2 || (bitand(data.flagBitmap, flags.CHANNELMAP) ~= 0) )
                 data.channelMap = fread(fid, 1, 'int32');
             end
-            
+
             % what's going on here? == UID?
             if (bitand(data.flagBitmap, flags.UID) == flags.UID)
                 data.UID = fread(fid, 1, 'int64');
@@ -101,21 +116,21 @@ classdef StandardModule < BaseChunk
             if (bitand(data.flagBitmap, flags.STARTSAMPLE) ~= 0)
                 data.startSample = fread(fid, 1, 'int64');
             end
-            
+
             if (bitand(data.flagBitmap, flags.SAMPLEDURATION) ~= 0)
                 data.sampleDuration = fread(fid, 1, 'int32');
             end
-            
+
             if (bitand(data.flagBitmap, flags.FREQUENCYLIMITS) ~= 0)
                 minFreq = fread(fid, 1, 'float');
                 maxFreq = fread(fid, 1, 'float');
                 data.freqLimits = [minFreq maxFreq];
             end
-            
+
             if (bitand(data.flagBitmap, flags.MILLISDURATION) ~= 0)
                 data.millisDuration = fread(fid, 1, 'float');
             end
-            
+
             if (bitand(data.flagBitmap, flags.TIMEDELAYSSECS) ~= 0)
                 data.numTimeDelays = fread(fid, 1, 'int16');
                 td=zeros(1, data.numTimeDelays);
@@ -124,7 +139,7 @@ classdef StandardModule < BaseChunk
                 end
                 data.timeDelays=td;
             end
-            
+
             if (bitand(data.flagBitmap, flags.HASSEQUENCEMAP) ~= 0)
                 data.sequenceMap = fread(fid, 1, 'int32');
             end
@@ -140,6 +155,92 @@ classdef StandardModule < BaseChunk
             if (bitand(data.flagBitmap, flags.HASSIGNALEXCESS) ~= 0)
                 data.signalExcess = fread(fid, 1, 'float32');
             end
+            
+            
+            
+            % read standard module data (each module has this)
+            
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%% READ MODULE-SPECIFIC DATA %%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+            
+            % [data, selState] = StandardModule.readStandardModuleData(fid, data, fileInfo, length, identifier);
+            % read length of module specific data (if 0, escape)
+            dataLength = fread(fid, 1, 'int32');
+            if (dataLength == 0)
+                return; end
+            % read module specific data
+            [data, selState] = obj.readImpl(fid, data, fileInfo, length, identifier, selState);
+            
+            
+            
+            
+            % read standardised annotations
+            
+            
+            
+            
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%% READ ANNOTATION DATA %%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            data.annotations = [];
+
+            if (bitand(data.flagBitmap, flags.HASBINARYANNOTATIONS) ~= 0)
+                anStartPos = ftell(fid);
+                anTotLength = fread(fid, 1, 'int16');
+                anTotCount = fread(fid, 1, 'int16');
+                
+                for i = 1:anTotCount
+                    filePos = ftell(fid);
+                    anLength = fread(fid, 1, 'int16')-2; % this length does not include itself
+                    anId = readJavaUTFString(fid);
+                    anVersion = fread(fid, 1, 'int16');
+                    
+                    anObj = -1;
+                    switch (anId)
+                        case 'Beer'
+                            anObj = BeamFormer();
+                        case 'Bearing'
+                            anObj = Bearing();
+                        case 'TMAN'
+                            anObj = TM();
+                        case 'TDBL'
+                            anObj = TDBL();
+                        case 'ClickClasssifier_1'
+                            anObj = ClickClsFr();
+                        case 'Matched_Clk_Clsfr'
+                            anObj = MarchCls();
+                        case 'BCLS' 
+                            anObj = RWUDP();
+                        case {'DLRE', 'Delt'}
+                            anObj = DL();
+                        case {'Uson', 'USON'}
+                            anObj = UserForm();
+                        otherwise
+                            fprintf('Unknown anotation type "%s" length %d version %d in file\n', ...
+                                anId, anLength, anVersion);
+                            fseek(fid, filePos + anLength, 'bof');
+                    end
+                    if ~isempty(anObj)
+                        % Assign the result of anObj() to a dynamic field of anData.annotations
+                        d = anObj.read(fid, fileInfo, anLength, anVersion);
+                        data.annotations.(anObj.name) = d;
+                    end
+                    anEndPos = ftell(fid);
+                    if (anEndPos ~= filePos + anLength)
+                        disp('Possible annotation read size error in file')
+                        fseek(fid, filePos + anLength, 'bof');
+                        anEndPos = ftell(fid);
+                    end
+                end
+                if (anEndPos ~= anStartPos + anTotLength)
+                    fseek(fid, anStartPos + anTotLength, 'bof');
+                end
+            end
         end
+        
     end
 end

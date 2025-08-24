@@ -6,8 +6,8 @@ classdef StandardFileFooter < BaseChunk
         function [data, selState] = read(obj, fid, data, fileInfo, length, identifier) 
             [data, selState] = read@BaseChunk(obj, fid, data, fileInfo, length, identifier);
             version = fileInfo.fileHeader.version;
-            data.length = fread(fid, 1, 'int32');
-            data.identifier = fread(fid, 1, 'int32');
+            data.length = length;
+            data.identifier = identifier;
             data.nObjects = fread(fid, 1, 'int32');
             data.dataDate = millisToDateNum(fread(fid, 1, 'int64'));
             data.analysisDate = millisToDateNum(fread(fid, 1, 'int64'));

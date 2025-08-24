@@ -14,3 +14,6 @@ pgmatlab/Array/.MATLABDriveTag
 
 # Development folders
 data/
+
+# Other
+.RHistory

@@ -19,7 +19,10 @@ classdef StandardFileHeader < BaseChunk
             data.streamName = readJavaUTFString(fid);
             data.extraInfoLen = fread(fid, 1, 'int32');
             % TODO: extra info is not always expected
-            data.extraInfo = fread(fid, data.extraInfoLen, 'int8');
+            % data.extraInfo = [];
+            if (data.extraInfoLen > 0)
+                data.extraInfo = fread(fid, data.extraInfoLen, 'int8');
+            end
         end
     end
 end
