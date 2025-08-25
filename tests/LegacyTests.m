@@ -3,10 +3,20 @@
 
 classdef LegacyTests < matlab.unittest.TestCase
     properties
-        currentLibName = 'pgmatlab';
-        oldLibName = 'tests/legacy';
-        dataRootDir = './tests/data/';
+        testsFolder = 'tests'; % inside root
+        resourcesFolder = 'resources'; % inside root
+            dataFolder = 'data'; % inside resources
+            legacyFolder = 'legacy'; % inside resources
+        codeFolder = 'pgmatlab'; % inside root
+        
+        rootDir;
+        testsDir;
+        resourcesDir;
+            dataDir;
+            legacyDir;
+        codeDir;
     end
+    
     properties (TestParameter)
         filePath = {
             'processing/ais/ais_v1_test1.pgdf', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_detections.pgdf', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_models.pgdf', 'detectors/click/click_v4_test1.pgdf', 'detectors/click/click_v4_test2.pgdf', 'detectors/click/click_v4_test3.pgdf', 'detectors/clicktriggerbackground/clicktriggerbackground_v0_test1.pgdf', 'detectors/gpl/gpl_v2_test1.pgdf', 'detectors/gpl/gpl_v2_test2.pgdf', 'detectors/rwedge/RW_Edge_Detector_Right_Whale_Edge_Detector_Edges_20090328_230139.pgdf', 'detectors/whistleandmoan/whistleandmoan_v2_test1.pgdf', 'plugins/geminithreshold/geminithreshold_test1.pgdf', 'plugins/spermwhaleipi/spermwhaleipi_v1_test1.pgdf', 'processing/clipgenerator/clipgenerator_v3_test1.pgdf', 'processing/clipgenerator/clipgenerator_v3_test2.pgdf', 'processing/dbht/dbht_v2_test1.pgdf', 'processing/difar/difar_v2_test1.pgdf', 'processing/difar/difar_v2_test2.pgdf', 'processing/difar/difar_v2_test3.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test2.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test3.pgdf', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test2.pgdf', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test2.pgdf', 'processing/longtermspectralaverage/longtermspectralaverage_v2_test1.pgdf', 'processing/noiseband/noiseband_v3_test1.pgdf', 'processing/noiseband/noisebandnoise_v3_test1.pgdf', 'processing/noiseband/noisebandpulses_v3_test1.pgdf', 'processing/noisemonitor/noisemonitor_v2_test1.pgdf', ...
@@ -15,14 +25,29 @@ classdef LegacyTests < matlab.unittest.TestCase
             };
         end
     methods
+        function obj = LegacyTests()
+            obj.testsDir = pwd; % assumes running tests from within testsDir
+            obj.rootDir = fileparts(obj.testsDir); % one level up (into root)
+            obj.resourcesDir = fullfile(obj.rootDir, obj.resourcesFolder);
+                obj.dataDir = fullfile(obj.resourcesDir, obj.dataFolder);
+                obj.legacyDir = fullfile(obj.resourcesDir, obj.legacyFolder);
+            obj.codeDir = fullfile(obj.rootDir, obj.codeFolder);
+
+            disp("RUNNING TESTS WITH THE FOLLOWING CONFIGURATION")
+            disp("Test Directory: " + obj.testsDir);
+            disp("Root Directory: " + obj.rootDir);
+            disp("Data Directory: " + obj.dataDir);
+            disp("Legacy Directory: " + obj.legacyDir);
+            disp("Code Directory: " + obj.codeDir);
+        end
         function [data, fileInfo] = runCur(obj, filename)
-            rmpath(obj.oldLibName);
-            addpath(genpath(obj.currentLibName));
+            rmpath(obj.legacyDir);
+            addpath(genpath(obj.codeDir));
             [data, fileInfo] = loadPamguardBinaryFile(filename);
         end
         function [data, fileInfo] = runOld(obj, filename)
-            rmpath(obj.currentLibName);
-            addpath(obj.oldLibName);
+            rmpath(obj.codeDir);
+            addpath(obj.legacyDir);
             [data, fileInfo] = loadPamguardBinaryFile(filename);
         end
     end
@@ -30,7 +55,7 @@ classdef LegacyTests < matlab.unittest.TestCase
 
     methods(Test)
         function testFile(testCase, filePath)
-            relFilePath = testCase.dataRootDir + "" + filePath;
+            relFilePath = fullfile(testCase.dataDir, filePath);
             fprintf('Testing %s\n', relFilePath);
 
             tic;
