@@ -1,3 +1,8 @@
+# This workflow will automatically create a ZIP file
+# of the distribution files, and add them to a GitHub
+# release. It only runs, on creation of the GitHub
+# release.
+
 name: Build Package
 
 on:
@@ -17,15 +22,15 @@ jobs:
 
     - name: Zip code to distribute
       run: |
-        zip -r pgmatlab.zip pgmatlab/*
+        zip -r "pgmatlab-${GITHUB_EVENT_RELEASE_TAG_NAME}.zip" pgmatlab/* LICENSE README.md
 
     - name: Upload code to distribute
       uses: actions/upload-artifact@v4
       with:
         name: dist-files
-        path: pgmatlab.zip
+        path: "pgmatlab-${GITHUB_EVENT_RELEASE_TAG_NAME}.zip"
 
     - name: Append distribution code to release
       uses: softprops/action-gh-release@v2
       with:
-        files: pgmatlab.zip
+        files: "pgmatlab-${GITHUB_EVENT_RELEASE_TAG_NAME}.zip"
