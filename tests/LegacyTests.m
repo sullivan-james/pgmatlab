@@ -79,10 +79,10 @@ classdef LegacyTests < matlab.unittest.TestCase
             fileSize = dir(relFilePath);
             fileSize = fileSize.bytes;
             
-            % Write results to CSV file
-            fid = fopen('results.csv', 'a');
-            fprintf(fid, '%s,%d,%f,%f\n', relFilePath, fileSize, newTime, oldTime);
-            fclose(fid);
+            % % Write results to CSV file
+            % fid = fopen('results.csv', 'a');
+            % fprintf(fid, '%s,%d,%f,%f\n', relFilePath, fileSize, newTime, oldTime);
+            % fclose(fid);
         end
     end
 end
