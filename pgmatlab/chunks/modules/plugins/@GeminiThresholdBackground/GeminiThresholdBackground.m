@@ -1,10 +1,7 @@
 
 
-classdef GeminiThresholdBackground < StandardModule
-    properties
-        objectType = [];
-    end
-    methods (Access = private)
+classdef GeminiThresholdBackground < StandardBackground
+    methods (Static)
         function glf = readTritechGLFRecord(fid, fileInfo) %#ok<*INUSD>
             endy = 'ieee-le';
 
@@ -19,11 +16,13 @@ classdef GeminiThresholdBackground < StandardModule
             if (glf.imageVersion == 3)
                 skip = fread(fid, 1, 'uint16', endy); %#ok<*NASGU>
             end
+            % disp("I GOT HERE 1");
             nBearing = glf.endBearing-glf.startBearing;
             nRange = glf.endRange-glf.startRange;
             packedSize = fread(fid, 1, 'uint32', endy);
             zipped = uint8(fread(fid, packedSize, 'uint8', endy))';
             fullLen = nRange*nBearing;
+            % disp(glf.imageVersion);
             try
                 % from https://uk.mathworks.com/matlabcentral/answers/313672-java-class-inflater-call-from-matlab-command-window
                 output      = java.io.ByteArrayOutputStream();
@@ -99,16 +98,8 @@ classdef GeminiThresholdBackground < StandardModule
     methods
         function obj = GeminiThresholdBackground(); end        
         function [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);
-
-            fp = ftell(fid);
-            data.dataLength = fread(fid, 1, 'int32');
-            data.head = readTritechHeader(fid, fileInfo);
-            data.glf = readTritechGLFRecord(fid, fileInfo, data);
-
-            fp2 = ftell(fid);
-            if fp2-fp ~= data.dataLength
-                fseek(fid, fp+data.dataLength+4, "bof");
-            end
+            data.head = GeminiThresholdBackground.readTritechHeader(fid, fileInfo);
+            data.glf = GeminiThresholdBackground.readTritechGLFRecord(fid, fileInfo);
         end
     end
 end

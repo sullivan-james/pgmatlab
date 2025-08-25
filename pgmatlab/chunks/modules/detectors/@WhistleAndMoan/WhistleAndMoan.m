@@ -3,11 +3,11 @@ classdef WhistleAndMoan < StandardModule
         objectType = 2000;
     end
     methods
-        function obj = WhistleAndMoan();
+        function obj = WhistleAndMoan()
             obj.header = @WhistleAndMoanHeader;
+            obj.background = @SpectralBackground;
         end
         function [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);
-
             if (fileInfo.moduleHeader.version<=1)
                 data.startSample = fread(fid, 1, 'int64');
                 data.channelMap = fread(fid, 1, 'int32');
@@ -43,7 +43,6 @@ classdef WhistleAndMoan < StandardModule
                 data.contWidth(i) = aSlice.peakData(3,1) - aSlice.peakData(1,1) + 1;
             end
             data.meanWidth = mean(data.contWidth);
-            
         end
     end
 end

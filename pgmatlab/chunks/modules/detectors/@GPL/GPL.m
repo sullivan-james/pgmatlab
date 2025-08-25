@@ -3,7 +3,7 @@ classdef GPL < StandardModule
         objectType = [];
     end
     methods
-        function obj = GPL();
+        function obj = GPL(); 
             obj.background = @SpectralBackground;
         end
         function [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);

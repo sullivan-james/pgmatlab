@@ -1,7 +1,4 @@
-classdef ClickBackground < StandardModule
-    properties
-        objectType = [];
-    end
+classdef ClickBackground < StandardBackground
     methods
         function obj = ClickBackground(); end
         function [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);            

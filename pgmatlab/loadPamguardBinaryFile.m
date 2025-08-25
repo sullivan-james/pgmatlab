@@ -259,15 +259,7 @@ try
                 dataPoint = struct();
 
                 try
-                    if isBackground
-                        if ~isvalid(backgroundObj)
-                            backgroundObj = moduleObj.background();
-                        end
-                        [dataPoint, selState] = backgroundObj.read(fid, dataPoint, fileInfo, length, identifier);
-                    else
-                        [dataPoint, selState] = moduleObj.read(fid, dataPoint, fileInfo, length, identifier);
-                    end
-                    % [dataPoint, selState] = moduleObj.readAnnotations(fid, dataPoint, fileInfo, length, identifier);
+                    [dataPoint, selState] = moduleObj.read(fid, dataPoint, fileInfo, length, identifier);
                 catch mError
                     disp(['Error reading ' fileInfo.fileHeader.moduleType '  data object.  Data read:']);
                     disp(dataPoint);
@@ -324,6 +316,7 @@ try
     % due to preallocation it's likely the array is now far too large so
     % shrink it back to the correct size.
     dataSet = dataSet(1:nData);
+    background = background(1:nBackground);
 catch mError
     disp('Error reading file');
     disp(getReport(mError));

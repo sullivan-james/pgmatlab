@@ -10,6 +10,7 @@ function [data, error] = readTritechBackground(fid, fileInfo, data)
 %   data = structure containing data from a single object
 %
 fp = ftell(fid);
+disp(fp);
 dataLength = fread(fid, 1, 'int32');
 data.head = readTritechHeader(fid, fileInfo);
 data.glf = readTritechGLFRecord(fid, fileInfo, data);

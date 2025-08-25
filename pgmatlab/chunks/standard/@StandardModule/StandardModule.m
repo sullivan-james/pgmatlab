@@ -20,9 +20,15 @@ classdef StandardModule < BaseChunk
         [data, selState] = readImpl(~, fid, data, fileInfo, length, identifier, selState);
     end
 
+    methods
+        function [data, selState] = readBackgroundImpl(~, fid, data, fileInfo, length, identifier, selState); end
+    end
+
     methods (Access = public, Sealed)
         function obj = StandardModule(); end
         function [data, selState] = read(obj, fid, data, fileInfo, length, identifier) 
+            
+            isBackground = identifier == -6;
             
             selState = 0;
             data.identifier = identifier;
@@ -171,17 +177,15 @@ classdef StandardModule < BaseChunk
             dataLength = fread(fid, 1, 'int32');
             if (dataLength == 0)
                 return; end
-            % read module specific data
-            [data, selState] = obj.readImpl(fid, data, fileInfo, length, identifier, selState);
-            
-            
-            
-            
-            % read standardised annotations
-            
-            
-            
-            
+
+            if isBackground
+                % read module-specific background data
+                [data, selState] = obj.background().read(fid, data, fileInfo, length, identifier, selState);
+            else
+                % read module-specific data
+                [data, selState] = obj.readImpl(fid, data, fileInfo, length, identifier, selState);
+            end
+
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             %%%%%%%% READ ANNOTATION DATA %%%%%%%%
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -241,6 +245,6 @@ classdef StandardModule < BaseChunk
                 end
             end
         end
-        
+      
     end
 end
