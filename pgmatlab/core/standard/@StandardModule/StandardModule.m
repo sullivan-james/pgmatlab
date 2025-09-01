@@ -26,11 +26,11 @@ classdef StandardModule < BaseChunk
 
     methods (Access = public, Sealed)
         function obj = StandardModule(); end
-        function [data, selState] = read(obj, fid, data, fileInfo, length, identifier) 
+        function [data, selState] = read(obj, fid, data, fileInfo, length, identifier, timeRange, uidRange, uidList) 
             
             isBackground = identifier == -6;
             
-            selState = 0;
+            selState = 1;
             data.identifier = identifier;
             fileVersion = fileInfo.fileHeader.fileFormat;
 
@@ -73,12 +73,15 @@ classdef StandardModule < BaseChunk
             data.millis = fread(fid, 1, 'int64');
             % set date, to maintain backwards compatibility
             data.date = millisToDateNum(data.millis);
-            % TODO: IMPLEMENT timeRange FILTER
-            % if (data.date < timeRange(1))
-            %     selState = 0;
-            % elseif (data.date > timeRange(2))
-            %     selState = 2;
-            % end
+
+            % TIMERANGE FILTER
+            if (data.date < timeRange(1))
+                selState = 0;
+                return;
+            elseif (data.date > timeRange(2))
+                selState = 2;
+                return;
+            end
 
             % read flagBitmap (since version 3)
             if (fileVersion >= 3)
@@ -98,26 +101,25 @@ classdef StandardModule < BaseChunk
             % what's going on here? == UID?
             if (bitand(data.flagBitmap, flags.UID) == flags.UID)
                 data.UID = fread(fid, 1, 'int64');
-                % TODO: IMPLEMENT FILTERS
-                % if (data.UID < uidRange(1))
-                %     selState = 0;
-                % elseif (data.UID > uidRange(2))
-                %     selState = 2;
-                % end
-            end
-            % TODO: IMPLEMENT uidList FILTER
-            % if ~isempty(uidList) && ~isBackground
-            %     inList = sum(uidList == data.UID) > 0;
-            %     if ~inList
-            %         selState = 0;
-            %     end
-            %     % rare situations where UID's not in order and this can go badly
-            %     % wrong. 
-            %     % if (data.UID > max(uidList))
-            %     %     selState = 2;
-            %     % end
-            % end
+                
+                % UIDRANGE FILTER
+                if (data.UID < uidRange(1))
+                    selState = 0;
+                    return;
+                elseif (data.UID > uidRange(2))
+                    selState = 2;
+                    return;
+                end
 
+                % UIDLIST filter
+                if ~isempty(uidList) && ~isBackground
+                    inList = sum(uidList == data.UID) > 0;
+                    if ~inList
+                        selState = 0;
+                        return;
+                    end
+                end
+            end
 
             if (bitand(data.flagBitmap, flags.STARTSAMPLE) ~= 0)
                 data.startSample = fread(fid, 1, 'int64');

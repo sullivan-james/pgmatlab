@@ -37,6 +37,14 @@ function [dataSet, fileInfo] = loadPamguardBinaryFile(fileName, varargin)
 % addpath(genpath('./pgmatlab/chunks/'))
 % addpath(genpath('./pgmatlab/utils/'))
 
+persistent calledPaths
+if isempty(calledPaths) || ~calledPaths
+    curDir = fileparts(which('loadPamguardBinaryFile.m'));
+    addpath(genpath(fullfile(curDir, '/core')))
+    addpath(genpath(fullfile(curDir, '/utils')))
+    calledPaths = true;
+end
+
 dataSet = [];
 fileInfo = [];
 nBackground = 0;
@@ -46,8 +54,11 @@ uidList = [];
 iArg = 0;
 filterfun = @passalldata;
 channelmap=-1;
+disp("TOTAL: " + numel(varargin))
 while iArg < numel(varargin)
     iArg = iArg + 1;
+    disp(iArg)
+    disp(varargin{iArg})
     switch(varargin{iArg})
         case 'timerange'
             iArg = iArg + 1;
@@ -77,8 +88,7 @@ try
     prevPos = -1;
     background = [];
 
-    persistent backgroundObj;
-    persistent moduleObj;
+    moduleObj = -1;
 
 
     % main loop
@@ -252,32 +262,27 @@ try
                 % Case 6: Data/Background.  The correct moduleObj should have been
                 % set when we read in the file header.  If the file header is
                 % empty, something has gone wrong so warn the user and exit
+
+                % if selState is STOP (2) then we can skip the rest of the chunks
+                if (selState == 2) % stop (2)
+                    fseek(fid, nextPos - ftell(fid), 'cof');
+                    continue;
+                end
+               
                 if (isempty(fileInfo.fileHeader) || isempty(fileInfo.moduleHeader))
                     disp('Error: found data before headers.  Aborting load');
                 end
+
                 isBackground = identifier == -6;
                 dataPoint = struct();
 
                 try
-                    [dataPoint, selState] = moduleObj.read(fid, dataPoint, fileInfo, length, identifier);
+                    [dataPoint, selState] = moduleObj.read(fid, dataPoint, fileInfo, length, identifier, timeRange, uidRange, uidList);
                 catch mError
                     disp(['Error reading ' fileInfo.fileHeader.moduleType '  data object.  Data read:']);
                     disp(dataPoint);
                     disp(getReport(mError));
                 end
-
-                % see if it's in the specified list of wanted UID's
-                % if ~isempty(uidList)
-                %     try
-                %         dataUID = dataPoint.UID;
-                %         % if dataUID > uidList(end)
-                %         %     break;
-                %         % end
-                %         selState = sum(dataUID == uidList);
-                %     catch
-
-                %     end
-                % end
 
                 % if channelmap>0 && channelmap~=dataPoint.channelMap
                 %     continue;
@@ -287,11 +292,10 @@ try
                 %     selState = filterfun(dataPoint);
                 % end
 
-                % if (selState == 0) % skip
-                %     continue;
-                % elseif (selState == 2) % stop
-                %     break;
-                % end
+                if (selState == 0 || selState == 2) % skip (0) or stop (2)
+                    fseek(fid, nextPos - ftell(fid), 'cof');
+                    continue;
+                end
 
                 % add to the data or background variables accordingly
                 if isBackground
@@ -303,14 +307,12 @@ try
                     dataSet = checkArrayAllocation(dataSet, nData, dataPoint);
                     dataSet(nData) = dataPoint;
                 end
-            % reconcile file position with what we expect
+            
+                % reconcile file position with what we expect
             if ftell(fid) ~= nextPos
                 fprintf('Error in file position: %d bytes\n', ftell(fid)-nextPos);
                 fseek(fid, nextPos - ftell(fid), 'cof');
             end
-        end
-        if (selState == 2)
-            break;
         end
     end
     % due to preallocation it's likely the array is now far too large so

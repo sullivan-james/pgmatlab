@@ -19,9 +19,75 @@ classdef LegacyTests < matlab.unittest.TestCase
     
     properties (TestParameter)
         filePath = {
-            'processing/ais/ais_v1_test1.pgdf', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_detections.pgdf', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_models.pgdf', 'detectors/click/click_v4_test1.pgdf', 'detectors/click/click_v4_test2.pgdf', 'detectors/click/click_v4_test3.pgdf', 'detectors/clicktriggerbackground/clicktriggerbackground_v0_test1.pgdf', 'detectors/gpl/gpl_v2_test1.pgdf', 'detectors/gpl/gpl_v2_test2.pgdf', 'detectors/rwedge/RW_Edge_Detector_Right_Whale_Edge_Detector_Edges_20090328_230139.pgdf', 'detectors/whistleandmoan/whistleandmoan_v2_test1.pgdf', 'plugins/geminithreshold/geminithreshold_test1.pgdf', 'plugins/spermwhaleipi/spermwhaleipi_v1_test1.pgdf', 'processing/clipgenerator/clipgenerator_v3_test1.pgdf', 'processing/clipgenerator/clipgenerator_v3_test2.pgdf', 'processing/dbht/dbht_v2_test1.pgdf', 'processing/difar/difar_v2_test1.pgdf', 'processing/difar/difar_v2_test2.pgdf', 'processing/difar/difar_v2_test3.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test2.pgdf', 'processing/ishmael/ishmaeldetections_energysum_v2_test3.pgdf', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test2.pgdf', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test1.pgdf', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test2.pgdf', 'processing/longtermspectralaverage/longtermspectralaverage_v2_test1.pgdf', 'processing/noiseband/noiseband_v3_test1.pgdf', 'processing/noiseband/noisebandnoise_v3_test1.pgdf', 'processing/noiseband/noisebandpulses_v3_test1.pgdf', 'processing/noisemonitor/noisemonitor_v2_test1.pgdf', ...
-            'processing/ais/ais_v1_test1.pgdx', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_detections.pgdx', 'classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_models.pgdx', 'detectors/click/click_v4_test1.pgdx', 'detectors/click/click_v4_test2.pgdx', 'detectors/click/click_v4_test3.pgdx', 'detectors/clicktriggerbackground/clicktriggerbackground_v0_test1.pgdx', 'detectors/gpl/gpl_v2_test1.pgdx', 'detectors/gpl/gpl_v2_test2.pgdx', 'detectors/rwedge/RW_Edge_Detector_Right_Whale_Edge_Detector_Edges_20090328_230139.pgdx', 'detectors/whistleandmoan/whistleandmoan_v2_test1.pgdx', 'plugins/geminithreshold/geminithreshold_test1.pgdx', 'plugins/spermwhaleipi/spermwhaleipi_v1_test1.pgdx', 'processing/clipgenerator/clipgenerator_v3_test1.pgdx', 'processing/clipgenerator/clipgenerator_v3_test2.pgdx', 'processing/dbht/dbht_v2_test1.pgdx', 'processing/difar/difar_v2_test1.pgdx', 'processing/difar/difar_v2_test2.pgdx', 'processing/difar/difar_v2_test3.pgdx', 'processing/ishmael/ishmaeldetections_energysum_v2_test1.pgdx', 'processing/ishmael/ishmaeldetections_energysum_v2_test2.pgdx', 'processing/ishmael/ishmaeldetections_energysum_v2_test3.pgdx', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test1.pgdx', 'processing/ishmael/ishmaeldetections_matchedfilter_v2_test2.pgdx', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test1.pgdx', 'processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test2.pgdx', 'processing/longtermspectralaverage/longtermspectralaverage_v2_test1.pgdx', 'processing/noiseband/noiseband_v3_test1.pgdx', 'processing/noiseband/noisebandnoise_v3_test1.pgdx', 'processing/noiseband/noisebandpulses_v3_test1.pgdx', 'processing/noisemonitor/noisemonitor_v2_test1.pgdx', ...
-            'detectors/click/click_v4_test1.pgnf', 'detectors/click/click_v4_test2.pgnf', 'detectors/click/click_v4_test3.pgnf', 'detectors/gpl/gpl_v2_test1.pgnf', 'detectors/gpl/gpl_v2_test2.pgnf', 'detectors/whistleandmoan/whistleandmoan_v2_test1.pgnf', 'plugins/geminithreshold/geminithreshold_test1.pgnf'
+            % struct('path', "processing/ais/ais_v1_test1.pgdf"); 
+            % struct('path', "classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_detections.pgdf"); 
+            % struct('path', "classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_models.pgdf"); 
+            struct('path', "detectors/click/click_v4_test1.pgdf", 'uidrange', [1,10]); 
+            % struct('path', "detectors/click/click_v4_test2.pgdf"); 
+            % struct('path', "detectors/click/click_v4_test3.pgdf"); 
+            % struct('path', "detectors/clicktriggerbackground/clicktriggerbackground_v0_test1.pgdf"); 
+            % struct('path', "detectors/gpl/gpl_v2_test1.pgdf"); 
+            % struct('path', "detectors/gpl/gpl_v2_test2.pgdf"); 
+            % struct('path', "detectors/rwedge/RW_Edge_Detector_Right_Whale_Edge_Detector_Edges_20090328_230139.pgdf"); 
+            % struct('path', "detectors/whistleandmoan/whistleandmoan_v2_test1.pgdf"); 
+            % struct('path', "plugins/geminithreshold/geminithreshold_test1.pgdf"); 
+            % struct('path', "plugins/spermwhaleipi/spermwhaleipi_v1_test1.pgdf"); 
+            % struct('path', "processing/clipgenerator/clipgenerator_v3_test1.pgdf"); 
+            % struct('path', "processing/clipgenerator/clipgenerator_v3_test2.pgdf"); 
+            % struct('path', "processing/dbht/dbht_v2_test1.pgdf"); 
+            % struct('path', "processing/difar/difar_v2_test1.pgdf"); 
+            % struct('path', "processing/difar/difar_v2_test2.pgdf"); 
+            % struct('path', "processing/difar/difar_v2_test3.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test1.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test2.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test3.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_matchedfilter_v2_test1.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_matchedfilter_v2_test2.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test1.pgdf"); 
+            % struct('path', "processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test2.pgdf"); 
+            % struct('path', "processing/longtermspectralaverage/longtermspectralaverage_v2_test1.pgdf"); 
+            % struct('path', "processing/noiseband/noiseband_v3_test1.pgdf"); 
+            % struct('path', "processing/noiseband/noisebandnoise_v3_test1.pgdf"); 
+            % struct('path', "processing/noiseband/noisebandpulses_v3_test1.pgdf"); 
+            % struct('path', "processing/noisemonitor/noisemonitor_v2_test1.pgdf"); 
+            % struct('path', "processing/ais/ais_v1_test1.pgdx");
+            % struct('path', "classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_detections.pgdx");
+            % struct('path', "classifiers/deeplearningclassifier/deeplearningclassifier_v2_test1_models.pgdx");
+            % struct('path', "detectors/click/click_v4_test1.pgdx");
+            % struct('path', "detectors/click/click_v4_test2.pgdx");
+            % struct('path', "detectors/click/click_v4_test3.pgdx");
+            % struct('path', "detectors/clicktriggerbackground/clicktriggerbackground_v0_test1.pgdx");
+            % struct('path', "detectors/gpl/gpl_v2_test1.pgdx");
+            % struct('path', "detectors/gpl/gpl_v2_test2.pgdx");
+            % struct('path', "detectors/rwedge/RW_Edge_Detector_Right_Whale_Edge_Detector_Edges_20090328_230139.pgdx");
+            % struct('path', "detectors/whistleandmoan/whistleandmoan_v2_test1.pgdx");
+            % struct('path', "plugins/geminithreshold/geminithreshold_test1.pgdx");
+            % struct('path', "plugins/spermwhaleipi/spermwhaleipi_v1_test1.pgdx");
+            % struct('path', "processing/clipgenerator/clipgenerator_v3_test1.pgdx");
+            % struct('path', "processing/clipgenerator/clipgenerator_v3_test2.pgdx");
+            % struct('path', "processing/dbht/dbht_v2_test1.pgdx");
+            % struct('path', "processing/difar/difar_v2_test1.pgdx");
+            % struct('path', "processing/difar/difar_v2_test2.pgdx");
+            % struct('path', "processing/difar/difar_v2_test3.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test1.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test2.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_energysum_v2_test3.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_matchedfilter_v2_test1.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_matchedfilter_v2_test2.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test1.pgdx");
+            % struct('path', "processing/ishmael/ishmaeldetections_spectrogramcorrelation_v2_test2.pgdx");
+            % struct('path', "processing/longtermspectralaverage/longtermspectralaverage_v2_test1.pgdx");
+            % struct('path', "processing/noiseband/noiseband_v3_test1.pgdx");
+            % struct('path', "processing/noiseband/noisebandnoise_v3_test1.pgdx");
+            % struct('path', "processing/noiseband/noisebandpulses_v3_test1.pgdx");
+            % struct('path', "processing/noisemonitor/noisemonitor_v2_test1.pgdx");
+            % struct('path', "detectors/click/click_v4_test1.pgnf");
+            % struct('path', "detectors/click/click_v4_test2.pgnf");
+            % struct('path', "detectors/click/click_v4_test3.pgnf");
+            % struct('path', "detectors/gpl/gpl_v2_test1.pgnf");
+            % struct('path', "detectors/gpl/gpl_v2_test2.pgnf");
+            % struct('path', "detectors/whistleandmoan/whistleandmoan_v2_test1.pgnf");
+            % struct('path', "plugins/geminithreshold/geminithreshold_test1.pgnf")'
             };
         end
     methods
@@ -40,30 +106,63 @@ classdef LegacyTests < matlab.unittest.TestCase
             disp("Legacy Directory: " + obj.legacyDir);
             disp("Code Directory: " + obj.codeDir);
         end
-        function [data, fileInfo] = runCur(obj, filename)
+        function [data, fileInfo] = runCur(obj, filename, vin)
             rmpath(obj.legacyDir);
             addpath(genpath(obj.codeDir));
-            [data, fileInfo] = loadPamguardBinaryFile(filename);
+            [data, fileInfo] = loadPamguardBinaryFile(filename, vin{:});
         end
-        function [data, fileInfo] = runOld(obj, filename)
+        function [data, fileInfo] = runOld(obj, filename, vin)
             rmpath(obj.codeDir);
-            addpath(obj.legacyDir);
-            [data, fileInfo] = loadPamguardBinaryFile(filename);
+            addpath(obj.legacyDir);            
+            [data, fileInfo] = loadPamguardBinaryFile(filename, vin{:});
         end
     end
 
 
     methods(Test)
         function testFile(testCase, filePath)
-            relFilePath = fullfile(testCase.dataDir, filePath);
+            fp = filePath.path;
+
+            iArg = 1;
+            vin = {}
+
+            if isfield(filePath, 'uidlist')
+                vin{iArg} = 'uidlist';
+                vin{iArg+1} = filePath.uidlist;
+                iArg = iArg + 2;
+            end
+            if isfield(filePath, 'uidrange')
+                vin{iArg} = 'uidrange';
+                vin{iArg+1} = filePath.uidrange;
+                iArg = iArg + 2;
+            end
+            if isfield(filePath, 'daterange')
+                vin{iArg} = 'daterange';
+                vin{iArg+1} = filePath.daterange;
+                iArg = iArg + 2;
+            end
+            % filters = struct();
+            % if isfield(filePath, 'filters')
+            %     filters = filePath.filters;
+            % end
+            % varargin = cell(1, 2*length(fieldnames(filePath.filters{1})));
+            % idx = 1;
+            % for fieldName = fieldnames(filePath.filters{1})'
+            %     varargin{idx} = fieldName{1};
+            %     varargin{idx+1} = getfield(filePath.filters{1}, fieldName{1});
+            %     idx = idx + 2;
+            % end
+            % vin = filePath.filters{:};
+
+            relFilePath = fullfile(testCase.dataDir, fp);
             fprintf('Testing %s\n', relFilePath);
 
             tic;
-            [newData, newFileInfo] = testCase.runCur(relFilePath);
+            [newData, newFileInfo] = testCase.runCur(relFilePath, vin);
             newTime = toc;
             
             tic;
-            [oldData, oldFileInfo] = testCase.runOld(relFilePath);
+            [oldData, oldFileInfo] = testCase.runOld(relFilePath, vin);
             oldTime = toc;
             
             testCase.verifyEqual(newData, oldData);
