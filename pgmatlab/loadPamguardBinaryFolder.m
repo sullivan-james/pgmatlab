@@ -34,6 +34,7 @@ for i = 1:numel(d)
             dat(iDat).clickNumber = iDat;
             dat(iDat).fileName = fileNameOnly;
         end
+        disp(dat);
         data = [data dat];
     end
     if isfield(fInf, 'background')

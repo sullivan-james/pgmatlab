@@ -107,8 +107,8 @@ try
         data.UID = fread(fid,1,'int64');
         if (data.UID < uidRange(1))
             selState = 0;
-        % elseif (data.UID > uidRange(2))
-        %     selState = 2;
+        elseif (data.UID > uidRange(2))
+            selState = 0;
         end
     end
     
@@ -164,7 +164,7 @@ try
     if (data.date < timeRange(1))
         selState = 0;
     elseif (data.date > timeRange(2))
-        selState = 2;
+        selState = 0;
     end
 
     if ~isempty(uidList) && ~isBackground

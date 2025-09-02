@@ -52,13 +52,11 @@ timeRange = [-Inf +Inf];
 uidRange = [-Inf +Inf];
 uidList = [];
 iArg = 0;
+sorted = 0;
 filterfun = @passalldata;
 channelmap=-1;
-disp("TOTAL: " + numel(varargin))
 while iArg < numel(varargin)
     iArg = iArg + 1;
-    disp(iArg)
-    disp(varargin{iArg})
     switch(varargin{iArg})
         case 'timerange'
             iArg = iArg + 1;
@@ -76,6 +74,9 @@ while iArg < numel(varargin)
         case 'channel'
             iArg = iArg + 1;
             channelmap = varargin{iArg};
+        case 'sorted'
+            iArg = iArg + 1;
+            sorted = varargin{iArg};
     end
 end
 selState = 0;
@@ -263,12 +264,6 @@ try
                 % set when we read in the file header.  If the file header is
                 % empty, something has gone wrong so warn the user and exit
 
-                % if selState is STOP (2) then we can skip the rest of the chunks
-                if (selState == 2) % stop (2)
-                    fseek(fid, nextPos - ftell(fid), 'cof');
-                    continue;
-                end
-               
                 if (isempty(fileInfo.fileHeader) || isempty(fileInfo.moduleHeader))
                     disp('Error: found data before headers.  Aborting load');
                 end
@@ -284,15 +279,23 @@ try
                     disp(getReport(mError));
                 end
 
-                % if channelmap>0 && channelmap~=dataPoint.channelMap
-                %     continue;
-                % end
+                % Filter by channel
+                if channelmap > 0 && channelmap ~= dataPoint.channelMap
+                    selState = 0;
+                end
 
-                % if selState > 0
+                % Allow custom filters to be applied
+                % if selState ~= 1
                 %     selState = filterfun(dataPoint);
                 % end
 
-                if (selState == 0 || selState == 2) % skip (0) or stop (2)
+                % If the selState is 2 (STOP) and the data is sorted then
+                % stop reading the file. If the data is not sorted, then
+                % selState 0 (SKIP) and 2 (STOP) both mean 'SKIP'. If 
+                % selState is 1 (KEEP), we keep the data point.
+                if (selState == 2 && sorted)
+                    break;
+                elseif (selState ~= 1)
                     fseek(fid, nextPos - ftell(fid), 'cof');
                     continue;
                 end

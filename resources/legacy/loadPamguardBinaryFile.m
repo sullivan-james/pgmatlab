@@ -40,7 +40,7 @@ uidRange = [-Inf +Inf];
 uidList = [];
 iArg = 0;
 filterfun = @passalldata;
-channelmap=-1;
+channelmap = -1;
 while iArg < numel(varargin)
     iArg = iArg + 1;
    switch(varargin{iArg})
@@ -314,7 +314,7 @@ try
                     continue;
                 end
 
-                if selState > 0
+                if selState == 1
                     selState = filterfun(dataPoint);
                 end
                 if (selState == 0)

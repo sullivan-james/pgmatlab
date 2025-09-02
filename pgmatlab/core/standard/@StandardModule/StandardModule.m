@@ -27,7 +27,7 @@ classdef StandardModule < BaseChunk
     methods (Access = public, Sealed)
         function obj = StandardModule(); end
         function [data, selState] = read(obj, fid, data, fileInfo, length, identifier, timeRange, uidRange, uidList) 
-            
+            disp("I got here");
             isBackground = identifier == -6;
             
             selState = 1;
@@ -179,7 +179,7 @@ classdef StandardModule < BaseChunk
             dataLength = fread(fid, 1, 'int32');
             if (dataLength == 0)
                 return; end
-
+            disp("Sel state: " + selState);
             if isBackground
                 % read module-specific background data
                 [data, selState] = obj.background().read(fid, data, fileInfo, length, identifier, selState);
