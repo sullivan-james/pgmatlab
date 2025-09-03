@@ -102,13 +102,13 @@ try
     if (version == 2 || (bitand(data.flagBitmap, CHANNELMAP)~=0) )
         data.channelMap = fread(fid,1,'int32');
     end
-    
+
     if (bitand(data.flagBitmap, UID)==UID)
         data.UID = fread(fid,1,'int64');
         if (data.UID < uidRange(1))
             selState = 0;
-        % elseif (data.UID > uidRange(2))
-        %     selState = 2;
+        elseif (data.UID > uidRange(2))
+            selState = 2;
         end
     end
     
@@ -180,6 +180,7 @@ try
 
     if (selState == 2) 
         % no need to read any more
+        fseek(fid, nextObj, 'bof');
         return;
     end
     if (selState == 0)
@@ -187,7 +188,7 @@ try
         fseek(fid, nextObj, 'bof');
         return;
     end
-    
+
     % now read the module-specific data
     if isBackground
         hasBgndReader = sum(strcmp(fields(fileInfo),'readBackgroundData'));
@@ -214,6 +215,7 @@ try
             end
         end
     end
+
     % now check to see if there are standard annotations to the main data.
     if (bitand(data.flagBitmap, HASBINARYANNOTATIONS)~=0)
         
